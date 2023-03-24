@@ -7,7 +7,7 @@ import com.maxtrain.bootcamp.sales.order.Order;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="ordelines")
+@Table(name="orderlines")
 public class Orderline {
 
 	@Id

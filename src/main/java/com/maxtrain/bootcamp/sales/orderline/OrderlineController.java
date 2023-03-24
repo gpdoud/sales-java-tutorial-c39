@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.maxtrain.bootcamp.sales.item.Item;
+import com.maxtrain.bootcamp.sales.item.ItemRepository;
 import com.maxtrain.bootcamp.sales.order.Order;
 import com.maxtrain.bootcamp.sales.order.OrderRepository;
 
@@ -19,6 +21,8 @@ public class OrderlineController {
 	private OrderlineRepository ordlRepo;
 	@Autowired
 	private OrderRepository ordRepo;
+	@Autowired
+	private ItemRepository itemRepo;
 	
 	private boolean recalculateOrderTotal(int orderId) {
 		// read the order to be recalculated
@@ -33,6 +37,11 @@ public class OrderlineController {
 		Iterable<Orderline> orderlines = ordlRepo.findByOrderId(orderId);
 		double total = 0;
 		for(Orderline ol : orderlines) {
+			// after a POST, the item instance may be null
+			if(ol.getItem().getName() == null) {
+				Item item = itemRepo.findById(ol.getItem().getId()).get();
+				ol.setItem(item);
+			}
 			// for each orderline, multiply the quantity times the price
 			// and add it to the total
 			total += ol.getQuantity() * ol.getItem().getPrice();
@@ -63,6 +72,7 @@ public class OrderlineController {
 	@PostMapping
 	public ResponseEntity<Orderline> postOrderline(@RequestBody Orderline orderline) {
 		Orderline newOrderline = ordlRepo.save(orderline);
+		ordlRepo.findById(newOrderline.getId());
 		Optional<Order> order = ordRepo.findById(orderline.getOrder().getId());
 		if(!order.isEmpty()) {
 			boolean success = recalculateOrderTotal(order.get().getId());
